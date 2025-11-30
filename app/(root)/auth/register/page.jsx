@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import LoadingButton from "@/components/ui/AppComponent/LoadingButton";
+import LoadingButton from "@/components/AppComponent/LoadingButton";
 import { z } from "zod";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -61,7 +61,7 @@ function RegisterPage() {
       toast.success(res.message);
       form.reset();
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err);
     }
   };
 

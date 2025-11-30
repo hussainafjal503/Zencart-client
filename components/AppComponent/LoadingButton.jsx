@@ -1,7 +1,7 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
-import { Button } from "../button";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 function LoadingButton({
   type,

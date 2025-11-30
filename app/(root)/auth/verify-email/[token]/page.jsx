@@ -12,11 +12,13 @@ import { useDispatch } from "react-redux";
 import { logger } from "@/utility/logger";
 import toast from "react-hot-toast";
 import { verifyEmail } from "@/Redux/authSlice/actions";
+import { useRouter } from "next/navigation";
 
 function VerifyEmail({ params }) {
   const [isVerified, setIsVerified] = useState(false);
   const { token } = use(params);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const verifyHandler = async () => {
     try {
@@ -25,13 +27,14 @@ function VerifyEmail({ params }) {
       toast.success(res.message);
     } catch (error) {
       logger.error("error occured in verify Email Handler :: ", error);
-      toast.error(error.message);
+      toast.error(error);
     }
   };
 
   useEffect(() => {
     verifyHandler();
   }, []);
+
   return (
     <Card className={`w-[400px]`}>
       <CardContent>
@@ -50,8 +53,8 @@ function VerifyEmail({ params }) {
               <h1 className="text-2xl font-bold my-5 text-green-600">
                 Email Verification Sucess
               </h1>
-              <Button>
-                <Link href={APP_HOME}>Continue</Link>
+              <Button onClick={() => router.replace(APP_HOME)}>
+                <p>Continue</p>
               </Button>
             </div>
           </div>

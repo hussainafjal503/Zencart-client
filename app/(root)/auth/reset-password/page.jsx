@@ -23,9 +23,7 @@ import { z } from "zod";
 import Link from "next/link";
 import {
   APP_HOME,
-  APP_REGISTER,
-  APP_RESET_PASSWORD,
-  RESET_PASSWORD,
+  APP_LOGIN,
 } from "@/routes/appRoutes";
 import { loginUser, validateOTP } from "@/Redux/authSlice/actions";
 import toast from "react-hot-toast";
@@ -34,43 +32,22 @@ import { logger } from "@/utility/logger";
 import OtpValidationFrom from "@/components/AppComponent/OtpValidationFrom";
 import { useRouter } from "next/navigation";
 
-function LoginPage() {
-  const { isLoading } = useSelector((state) => state.auth);
-  const [isTypePassword, setIsTypePassword] = useState(true);
-  const [otpEmail, setOtpEmail] = useState(null);
-
-  logger.log(isLoading);
-  const dispatch = useDispatch();
-  const router = useRouter();
-
-  const formSchema = zSchema
-    .pick({
-      email: true,
-    })
-    .extend({
-      password: z.string().nonempty("Password is Required"),
-    });
+function ResetPassword() {
+  const [isLoading, setLoading] = useState(false);
+  const [email,setEmail]=useState("");
+  const formSchema = zSchema.pick({
+    email: true,
+  });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValue: {
       email: "",
-      password: "",
     },
   });
 
-  const handleLoginSubmit = async (values) => {
-    try {
-      logger.log("user login Data ==", values);
-      const res = await dispatch(loginUser(values)).unwrap();
-      logger.log("mongo", res);
-      toast.success(res.message);
-      setOtpEmail(values.email);
-      form.reset();
-    } catch (err) {
-      console.log(err);
-      toast.error(err);
-    }
+  const handleEmailSubmit = (values) => {
+
   };
 
   const handleOtpVerification = async (payload) => {
@@ -79,7 +56,7 @@ function LoginPage() {
       const res = await dispatch(validateOTP(payload)).unwrap();
 
       toast.success(res?.message);
-      router.replace(APP_HOME);
+    //   router.replace(APP_HOME);
     } catch (err) {
       logger.log("ERROR OCCURED IN OTP HANDLER :: ", err);
       toast.error(err);
@@ -104,14 +81,14 @@ function LoginPage() {
               {/* for login password and email  */}
 
               <div className="text-center">
-                <h1 className="text-3xl font-bold">Log Into Account</h1>
-                <p>Log Into Your Acccount by filling out the form below..</p>
+                <h1 className="text-3xl font-bold">Reset password</h1>
+                <p>Enter your email to reset your password..</p>
               </div>
 
               <div className="mt-5 ">
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit(handleLoginSubmit)}
+                    onSubmit={form.handleSubmit(handleEmailSubmit)}
                     className="space-y-8"
                   >
                     <div className="mb-5">
@@ -168,7 +145,7 @@ function LoginPage() {
                     <div className="mb-3">
                       <LoadingButton
                         type="submit"
-                        text="LogIn"
+                        text="Send OTP"
                         loading={isLoading}
                         className="w-full cursor-pointer"
                       />
@@ -178,18 +155,10 @@ function LoginPage() {
                       <div className="flex gap-1 justify-center item-center">
                         <p>Don't have an Account ? </p>
                         <Link
-                          href={APP_REGISTER}
+                          href={APP_LOGIN}
                           className="text-primary Underline font-bold"
                         >
-                          Create Account!
-                        </Link>
-                      </div>
-                      <div className="mt-3">
-                        <Link
-                          href={APP_RESET_PASSWORD}
-                          className="text-primary Underline font-bold"
-                        >
-                          Forget Password?
+                          Back to login
                         </Link>
                       </div>
                     </div>
@@ -214,4 +183,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default ResetPassword;

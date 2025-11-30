@@ -32,7 +32,7 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // checking for token expiration..
-    statusCode = error.response.status;
+    let statusCode = error.response.status;
     if (error.response && statusCode === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
