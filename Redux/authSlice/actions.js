@@ -10,7 +10,6 @@ export const registerUser = createAsyncThunk(
       const { data } = await axiosClient.post(
         `${USER_MANAGEMENT}/auth/register`,
         payload,
-        { withCredentials: true }
       );
 
       return data;
@@ -43,7 +42,6 @@ export const loginUser = createAsyncThunk(
       const { data } = await axiosClient.post(
         `${USER_MANAGEMENT}/auth/login`,
         payload,
-        { withCredentials: true }
       );
       return data;
     } catch (err) {
@@ -62,9 +60,7 @@ export const validateOTP = createAsyncThunk(
       const { data } = await axiosClient.post(
         `${USER_MANAGEMENT}/auth/validateOTP`,
         payload,
-        {
-          withCredentials: true,
-        }
+       
       );
       return data;
     } catch (err) {
@@ -81,12 +77,24 @@ export const resendOTP = createAsyncThunk(
       const { data } = await axiosClient.post(
         `${USER_MANAGEMENT}/auth/resendOTP`,
         payload,
-        { withCredentials: true }
       );
       return data;
     } catch (err) {
       logger.error("ERROR OCCURED IN RESEND OTP ACTIONS ::", err);
       rejectWithValue(err?.response?.data?.message);
+    }
+  }
+);
+
+export const logoutAction = createAsyncThunk(
+  "user/logout",
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosClient.get();
+      return data;
+    } catch (err) {
+      logger.error("ERROR OCCURED IN LOGOUT ACTION : ", err);
+      return rejectWithValue(err?.response?.data?.message);
     }
   }
 );

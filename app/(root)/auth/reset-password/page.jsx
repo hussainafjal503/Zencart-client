@@ -6,8 +6,6 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { zSchema } from "@/lib/zodSchema";
-import { FaRegEyeSlash } from "react-icons/fa";
-import { FaRegEye } from "react-icons/fa6";
 
 import {
   Form,
@@ -19,162 +17,225 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import LoadingButton from "@/components/AppComponent/LoadingButton";
-import { z } from "zod";
 import Link from "next/link";
-import {
-  APP_HOME,
-  APP_LOGIN,
-} from "@/routes/appRoutes";
-import { loginUser, validateOTP } from "@/Redux/authSlice/actions";
+import { APP_HOME, APP_REGISTER } from "@/routes/appRoutes";
 import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logger } from "@/utility/logger";
 import OtpValidationFrom from "@/components/AppComponent/OtpValidationFrom";
-import { useRouter } from "next/navigation";
+import UpdatePassword from "@/components/AppComponent/UpdatePassword";
+import {
+  resetPasswordSendOTP,
+  resetPasswordVerifyOTP,
+} from "@/Redux/resetPasswordSlice/actions";
 
 function ResetPassword() {
   const [isLoading, setLoading] = useState(false);
-  const [email,setEmail]=useState("");
+  const [isOTPVerified, setIsOTPVerified] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const dispatch = useDispatch();
+
   const formSchema = zSchema.pick({
     email: true,
   });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValue: {
+    defaultValues: {
       email: "",
     },
   });
 
-  const handleEmailSubmit = (values) => {
-
+  const handleEmailSubmit = async (values) => {
+    try {
+      setLoading(true);
+      const mailSentResponse = await dispatch(
+        resetPasswordSendOTP({ email: values.email })
+      ).unwrap();
+      setEmail(values.email);
+      toast.success(mailSentResponse.message);
+    } catch (err) {
+      logger.error(
+        "ERROR OCCURED IN HANDLE EMAIL SUBMIT IN RESET_PASSWORD : ",
+        err
+      );
+      toast.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpVerification = async (payload) => {
     try {
-      logger.log("opt values ==>", payload);
-      const res = await dispatch(validateOTP(payload)).unwrap();
-
+      setLoading(true);
+      const res = await dispatch(resetPasswordVerifyOTP(payload)).unwrap();
       toast.success(res?.message);
-    //   router.replace(APP_HOME);
+      setIsOTPVerified(true);
     } catch (err) {
       logger.log("ERROR OCCURED IN OTP HANDLER :: ", err);
       toast.error(err);
+    } finally {
+      setLoading(false);
     }
   };
   return (
-    <div>
-      <Card className="w-[450px]">
-        <CardContent>
-          <div className="flex justify-center">
-            <Image
-              src={Logo.src}
-              width={Logo.width}
-              height={Logo.height}
-              alt="logo"
-              className="max-w-[150px]"
-            />
-          </div>
+    // <div>
+    //   <Card className="w-[450px]">
+    //     <CardContent>
+    //       {!email && !isOTPVerified ? (
+    //         <>
+    //           {/* for login password and email  */}
 
-          {!otpEmail ? (
+    //           <div className="text-center">
+    //             <h1 className="text-3xl font-bold">Reset password</h1>
+    //             <p>Enter your email to reset your password..</p>
+    //           </div>
+
+    //           <div className="mt-5 ">
+    //             <Form {...form}>
+    //               <form
+    //                 onSubmit={form.handleSubmit(handleEmailSubmit)}
+    //                 className="space-y-8"
+    //               >
+    //                 <div className="mb-5">
+    //                   <FormField
+    //                     control={form.control}
+    //                     name="email"
+    //                     render={({ field }) => (
+    //                       <FormItem>
+    //                         <FormLabel>Email</FormLabel>
+    //                         <FormControl>
+    //                           <Input
+    //                             type="email"
+    //                             placeholder="example@gmail.com"
+    //                             {...field}
+    //                           />
+    //                         </FormControl>
+    //                         <FormMessage />
+    //                       </FormItem>
+    //                     )}
+    //                   />
+    //                 </div>
+
+    //                 <div className="mb-3">
+    //                   <LoadingButton
+    //                     type="Submit"
+    //                     text="Send OTP"
+    //                     loading={isLoading}
+    //                     className="w-full cursor-pointer"
+    //                   />
+    //                 </div>
+
+    //                 <div className="text-center">
+    //                   <div className="flex gap-1 justify-center item-center">
+    //                     <p>Don't have an Account ? </p>
+    //                     <Link
+    //                       href={APP_REGISTER}
+    //                       className="text-primary Underline font-bold"
+    //                     >
+    //                       Back to Register
+    //                     </Link>
+    //                   </div>
+    //                 </div>
+    //               </form>
+    //             </Form>
+    //           </div>
+    //         </>
+    //       ) : (
+    //         <>
+    //           {!isOTPVerified ? (
+    //             <>
+    //               <OtpValidationFrom
+    //                 email={email}
+    //                 loading={isLoading}
+    //                 onSubmit={handleOtpVerification}
+    //               />
+    //             </>
+    //           ) : (
+    //             <UpdatePassword email={email} />
+    //           )}
+    //         </>
+    //       )}
+    //     </CardContent>
+    //   </Card>
+    // </div>
+
+    <div className="flex justify-center items-center min-h-screen p-4">
+      <Card className="w-full max-w-[450px]">
+        <CardContent className="p-6 sm:p-8">
+          {/* State 1 — Ask for Email */}
+          {!email && !isOTPVerified ? (
             <>
-              {/* for login password and email  */}
-
-              <div className="text-center">
-                <h1 className="text-3xl font-bold">Reset password</h1>
-                <p>Enter your email to reset your password..</p>
+              <div className="text-center mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  Reset Password
+                </h1>
+                <p className="text-sm sm:text-base">
+                  Enter your email to reset your password.
+                </p>
               </div>
 
-              <div className="mt-5 ">
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(handleEmailSubmit)}
-                    className="space-y-8"
-                  >
-                    <div className="mb-5">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="example@gmail.com"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="mb-5">
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem className="relative">
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input
-                                type={isTypePassword ? "password" : "text"}
-                                placeholder="************"
-                                {...field}
-                              />
-                            </FormControl>
-                            <button
-                              type="button"
-                              className="absolute top-1/2
-						  right-4 cursor-pointer "
-                              onClick={() => setIsTypePassword(!isTypePassword)}
-                            >
-                              {isTypePassword ? (
-                                <FaRegEyeSlash />
-                              ) : (
-                                <FaRegEye />
-                              )}
-                            </button>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleEmailSubmit)}
+                  className="space-y-6"
+                >
+                  {/* Email */}
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="example@gmail.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <div className="mb-3">
-                      <LoadingButton
-                        type="submit"
-                        text="Send OTP"
-                        loading={isLoading}
-                        className="w-full cursor-pointer"
-                      />
-                    </div>
+                  {/* Send OTP */}
+                  <LoadingButton
+                    type="submit"
+                    text="Send OTP"
+                    loading={isLoading}
+                    className="w-full cursor-pointer"
+                  />
 
-                    <div className="text-center">
-                      <div className="flex gap-1 justify-center item-center">
-                        <p>Don't have an Account ? </p>
-                        <Link
-                          href={APP_LOGIN}
-                          className="text-primary Underline font-bold"
-                        >
-                          Back to login
-                        </Link>
-                      </div>
+                  {/* Footer Links */}
+                  <div className="text-center text-sm sm:text-base">
+                    <div className="flex gap-1 justify-center">
+                      <p>Don't have an account?</p>
+                      <Link
+                        href={APP_REGISTER}
+                        className="text-primary underline font-bold"
+                      >
+                        Back to Register
+                      </Link>
                     </div>
-                  </form>
-                </Form>
-              </div>
+                  </div>
+                </form>
+              </Form>
             </>
           ) : (
             <>
-              {/* otp validation form */}
-
-              <OtpValidationFrom
-                email={otpEmail}
-                loading={isLoading}
-                onSubmit={handleOtpVerification}
-              />
+              {/* State 2 — OTP Verification */}
+              {!isOTPVerified ? (
+                <OtpValidationFrom
+                  email={email}
+                  loading={isLoading}
+                  onSubmit={handleOtpVerification}
+                />
+              ) : (
+                /* State 3 — Update Password */
+                <UpdatePassword email={email} />
+              )}
             </>
           )}
         </CardContent>

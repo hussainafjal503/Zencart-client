@@ -165,7 +165,7 @@ function RegisterPage() {
                         <button
                           type="button"
                           className="absolute top-1/2
-						  right-4 cursor-pointer "
+    				  right-4 cursor-pointer "
                           onClick={() => setIsTypePassword(!isTypePassword)}
                         >
                           {isTypePassword ? <FaRegEyeSlash /> : <FaRegEye />}
